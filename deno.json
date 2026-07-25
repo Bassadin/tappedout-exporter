@@ -4,8 +4,8 @@
     "once": "deno run --allow-env --allow-net=tappedout.net --allow-read --allow-write src/main.ts --once",
     "format": "deno fmt",
     "check": "deno fmt --check && deno lint && deno check src/main.ts && deno task coverage",
-    "test": "deno test --allow-read=tests/fixtures",
-    "coverage": "deno test --clean --allow-read=tests/fixtures --coverage=coverage && deno coverage coverage"
+    "test": "deno test --allow-env --allow-read=tests --allow-write=tests",
+    "coverage": "deno test --clean --allow-env --allow-read=tests --allow-write=tests --coverage=coverage && deno coverage coverage"
   },
   "fmt": {
     "lineWidth": 100,
