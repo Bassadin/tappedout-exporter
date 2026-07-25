@@ -128,6 +128,7 @@ export function extractDeckMetadata(html: string): DeckMetadata {
   return {
     title,
     description: contentOf('meta[property="og:description"]'),
+    commanderNames: [],
   };
 }
 
@@ -296,11 +297,20 @@ export class TappedOutClient {
   ): Promise<{ csv: string; cards: Card[]; csvUrl: string; metadata: DeckMetadata }> {
     const pageUrl = normalizeDeckUrl(deckUrl);
     const exportUrl = csvUrl(deckUrl);
-    const metadata = extractDeckMetadata(await this.#fetch(pageUrl, "text/html"));
+    const pageMetadata = extractDeckMetadata(await this.#fetch(pageUrl, "text/html"));
     const csv = (await this.#fetch(exportUrl, "text/csv,text/plain;q=0.9,*/*;q=0.1"))
       .replaceAll("\r\n", "\n");
     try {
-      return { csv, cards: parseDeckCsv(csv), csvUrl: exportUrl, metadata };
+      const cards = parseDeckCsv(csv);
+      return {
+        csv,
+        cards,
+        csvUrl: exportUrl,
+        metadata: {
+          ...pageMetadata,
+          commanderNames: cards.filter((card) => card.commander).map((card) => card.name),
+        },
+      };
     } catch (error) {
       throw new Error(`Invalid export for ${deckUrl}: ${error}`, { cause: error });
     }

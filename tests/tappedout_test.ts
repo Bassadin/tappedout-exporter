@@ -17,6 +17,7 @@ Deno.test("extractDeckMetadata reads the deck's Open Graph title and description
   assertEquals(extractDeckMetadata(html), {
     title: "Kumena - Tappidity Tap Tap",
     description: "Draft for a Kumena Deck",
+    commanderNames: [],
   });
 });
 

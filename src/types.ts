@@ -44,6 +44,8 @@ export interface DeckMetadata {
   /** Deck name and description published on its TappedOut page. */
   title: string | null;
   description: string | null;
+  /** Card names marked as commanders by TappedOut; empty when the deck has none. */
+  commanderNames: string[];
 }
 
 export interface CatalogDeck {

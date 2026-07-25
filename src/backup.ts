@@ -24,7 +24,8 @@ function metadataMatches(existingJson: string | null, metadata: DeckMetadata): b
   try {
     const existing = JSON.parse(existingJson) as Partial<DeckBackup>;
     return existing.metadata?.title === metadata.title &&
-      existing.metadata.description === metadata.description;
+      existing.metadata.description === metadata.description &&
+      JSON.stringify(existing.metadata.commanderNames) === JSON.stringify(metadata.commanderNames);
   } catch {
     return false;
   }
