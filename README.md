@@ -98,7 +98,11 @@ previously downloaded deck folders remain available even after removal from that
 ```sh
 deno task check
 deno task test
+deno task coverage
 ```
+
+`deno task check` includes a fresh coverage run and terminal summary. The raw profiles and
+HTML/LCOV-ready coverage output are kept in `coverage/`, which is ignored by Git.
 
 Prefer pinned, actively maintained Deno standard-library or JSR packages for generic concerns such
 as parsing, scheduling, validation, and protocol handling. Keep custom code focused on
