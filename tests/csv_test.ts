@@ -15,5 +15,5 @@ Deno.test("recordsFromCsv maps missing trailing values to empty strings", () => 
 });
 
 Deno.test("parseCsv rejects an unterminated quoted field", () => {
-  assertThrows(() => parseCsv('Name\n"broken'), Error, "unterminated");
+  assertThrows(() => parseCsv('Name\n"broken'), SyntaxError);
 });

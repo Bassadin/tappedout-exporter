@@ -1,55 +1,8 @@
-/**
- * Small RFC 4180-compatible parser. TappedOut returns commas, quoted fields,
- * escaped quotes and CRLF, so keeping this local avoids a runtime dependency.
- */
+import { parse } from "jsr:@std/csv@1.0.6/parse";
+
+/** Parse CSV with Deno's maintained standard-library implementation. */
 export function parseCsv(input: string): string[][] {
-  const rows: string[][] = [];
-  let row: string[] = [];
-  let field = "";
-  let quoted = false;
-
-  for (let index = 0; index < input.length; index++) {
-    const char = input[index];
-
-    if (quoted) {
-      if (char === '"') {
-        if (input[index + 1] === '"') {
-          field += '"';
-          index++;
-        } else {
-          quoted = false;
-        }
-      } else {
-        field += char;
-      }
-      continue;
-    }
-
-    if (char === '"' && field.length === 0) {
-      quoted = true;
-    } else if (char === ",") {
-      row.push(field);
-      field = "";
-    } else if (char === "\n") {
-      row.push(field);
-      rows.push(row);
-      row = [];
-      field = "";
-    } else if (char !== "\r") {
-      field += char;
-    }
-  }
-
-  if (quoted) {
-    throw new Error("Invalid CSV: unterminated quoted field");
-  }
-
-  if (field.length > 0 || row.length > 0) {
-    row.push(field);
-    rows.push(row);
-  }
-
-  return rows.filter((candidate) =>
+  return parse(input).filter((candidate) =>
     candidate.length > 1 || (candidate.length === 1 && candidate[0] !== "")
   );
 }
