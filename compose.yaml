@@ -9,6 +9,7 @@ services:
       CRON_SCHEDULE: "${CRON_SCHEDULE:-0 3 * * *}"
       TZ: "${TZ:-Europe/Berlin}"
       RUN_ON_START: "${RUN_ON_START:-true}"
+      MAX_CONCURRENCY: "${MAX_CONCURRENCY:-1}"
       TAPPEDOUT_COOKIE: "${TAPPEDOUT_COOKIE:-}"
     volumes:
       - ./backups:/data

@@ -1,3 +1,4 @@
+import { pooledMap } from "jsr:@std/async@1.5.0/pool";
 import { dirname, join } from "jsr:@std/path@1.1.2";
 import type { Catalog, Config, DeckBackup } from "./types.ts";
 import { deckSlug, normalizeDeckUrl, TappedOutClient } from "./tappedout.ts";
@@ -25,22 +26,21 @@ export interface BackupResult {
 }
 
 export async function runBackup(config: Config): Promise<BackupResult> {
-  const client = new TappedOutClient(config);
   const urls = new Set(config.deckUrls.map(normalizeDeckUrl));
   if (config.folderUrl) {
+    const client = new TappedOutClient(config);
     for (const url of await client.discoverDecks(config.folderUrl)) urls.add(url);
   }
   if (urls.size === 0) {
     throw new Error("Configure FOLDER_URL and/or at least one URL in DECK_URLS");
   }
 
-  let changed = 0;
-  let unchanged = 0;
-  const catalogDecks = [];
-
-  for (const sourceUrl of [...urls].sort()) {
+  const processDeck = async (sourceUrl: string) => {
     const slug = deckSlug(sourceUrl);
     console.log(`[backup] Fetching ${slug}`);
+    // Each worker has its own request pacing state, so raising MAX_CONCURRENCY
+    // later genuinely permits parallel HTTP requests.
+    const client = new TappedOutClient(config);
     const downloaded = await client.downloadDeck(sourceUrl);
     const directory = join(config.outputDir, "decks", slug);
     const rawPath = join(directory, "deck.csv");
@@ -57,19 +57,24 @@ export async function runBackup(config: Config): Promise<BackupResult> {
         cards: downloaded.cards,
       };
       await writeIfChanged(jsonPath, `${JSON.stringify(document, null, 2)}\n`);
-      changed++;
       console.log(`[backup] Updated ${slug} (${downloaded.cards.length} rows)`);
+      return { changed: true, slug, sourceUrl };
     } else {
-      unchanged++;
       console.log(`[backup] Unchanged ${slug}`);
+      return { changed: false, slug, sourceUrl };
     }
+  };
 
-    catalogDecks.push({
-      slug,
-      sourceUrl,
-      path: `decks/${slug}`,
-    });
-  }
+  const processed = await Array.fromAsync(
+    pooledMap(config.maxConcurrency, [...urls].sort(), processDeck),
+  );
+  const changed = processed.filter((deck) => deck.changed).length;
+  const unchanged = processed.length - changed;
+  const catalogDecks = processed.map(({ slug, sourceUrl }) => ({
+    slug,
+    sourceUrl,
+    path: `decks/${slug}`,
+  }));
 
   const catalogPath = join(config.outputDir, "catalog.json");
   const existingCatalogText = await readTextIfPresent(catalogPath);

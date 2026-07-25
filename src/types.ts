@@ -62,6 +62,7 @@ export interface Config {
   requestDelayMs: number;
   requestTimeoutMs: number;
   maxRetries: number;
+  maxConcurrency: number;
   cookie: string | null;
   userAgent: string;
 }

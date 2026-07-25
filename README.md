@@ -61,10 +61,16 @@ docker compose run --rm -e MODE=once tappedout-exporter
 | `REQUEST_DELAY_MS`   | `1000`                          | Minimum pause between TappedOut requests                         |
 | `REQUEST_TIMEOUT_MS` | `60000`                         | Per-request timeout                                              |
 | `MAX_RETRIES`        | `4`                             | Retries for throttling and server failures                       |
+| `MAX_CONCURRENCY`    | `1`                             | Maximum concurrent deck exports; increase cautiously             |
 | `USER_AGENT`         | descriptive default             | HTTP User-Agent                                                  |
 
 Only HTTPS URLs on `tappedout.net` are accepted, so an authentication cookie cannot accidentally be
 sent to another host. Put secrets in `.env`; it is ignored by Git.
+
+Deck discovery is necessarily sequential because TappedOut's folder API returns the page and its
+pagination token in order. Deck CSV downloads are processed by a bounded worker pool. The default of
+`1` preserves the current low-impact request rate; raise `MAX_CONCURRENCY` only after TappedOut is
+stable again.
 
 ## Run with Deno
 

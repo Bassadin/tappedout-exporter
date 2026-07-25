@@ -49,6 +49,7 @@ export function loadConfig(): Config {
     requestDelayMs: integerEnv("REQUEST_DELAY_MS", 1_000, 0),
     requestTimeoutMs: integerEnv("REQUEST_TIMEOUT_MS", 60_000, 1_000),
     maxRetries: integerEnv("MAX_RETRIES", 4, 0),
+    maxConcurrency: integerEnv("MAX_CONCURRENCY", 1, 1),
     cookie: Deno.env.get("TAPPEDOUT_COOKIE")?.trim() || null,
     userAgent: Deno.env.get("USER_AGENT")?.trim() ||
       "Mozilla/5.0 (compatible; tappedout-exporter/0.1; personal deck backup)",
