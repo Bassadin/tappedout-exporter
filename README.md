@@ -76,12 +76,17 @@ stable again.
 
 Requires Deno 2.
 
-```sh
-$env:FOLDER_URL="https://tappedout.net/mtg-deck-folders/09-02-18-edh/"
-deno task once
+```powershell
+Copy-Item .env.example .env
+deno task --env-file=.env once
 ```
 
-For a scheduled foreground process, use `deno task start`.
+Unlike Docker Compose, `deno task` does not load `.env` automatically. Always pass
+`--env-file=.env` when running locally, including the scheduled foreground process:
+
+```sh
+deno task --env-file=.env start
+```
 
 ## Backup format and change behavior
 
