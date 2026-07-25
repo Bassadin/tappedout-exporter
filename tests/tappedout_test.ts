@@ -54,3 +54,20 @@ Deno.test("parseDeckCsv preserves TappedOut metadata and future columns", () => 
   assertEquals(cards[1].proxy, true);
   assertEquals(cards[1].raw.Future, "also kept");
 });
+
+Deno.test("parseDeckCsv handles the real Kumena TappedOut export", async () => {
+  const fixtureUrl = new URL("./fixtures/kumena-tappidity-tap-tap.csv", import.meta.url);
+  const cards = parseDeckCsv(await Deno.readTextFile(fixtureUrl));
+
+  assertEquals(cards.length, 84);
+  assertEquals(cards.reduce((total, card) => total + card.quantity, 0), 100);
+  assertEquals(cards.filter((card) => card.proxy).length, 22);
+  assertEquals(cards.filter((card) => card.foil).length, 0);
+  assertEquals(cards.filter((card) => card.commander).length, 1);
+  assertEquals(cards.filter((card) => card.language !== null).length, 14);
+  assertEquals(cards.filter((card) => card.printing !== null).length, 52);
+
+  const commander = cards.find((card) => card.commander);
+  assertEquals(commander?.name, "Kumena, Tyrant of Orazca");
+  assertEquals(cards.find((card) => card.name === "Academy Ruins")?.proxy, true);
+});

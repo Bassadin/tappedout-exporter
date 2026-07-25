@@ -4,7 +4,7 @@
     "once": "deno run --allow-env --allow-net=tappedout.net --allow-read --allow-write src/main.ts --once",
     "format": "deno fmt",
     "check": "deno fmt --check && deno lint && deno check src/main.ts",
-    "test": "deno test"
+    "test": "deno test --allow-read=tests/fixtures"
   },
   "fmt": {
     "lineWidth": 100,
