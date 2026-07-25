@@ -1,7 +1,7 @@
 import { pooledMap } from "jsr:@std/async@1.5.0/pool";
 import { dirname, join } from "jsr:@std/path@1.1.2";
 import type { Catalog, Config, DeckBackup, DeckMetadata } from "./types.ts";
-import { deckSlug, normalizeDeckUrl, TappedOutClient } from "./tappedout.ts";
+import { deckSlug, normalizeDeckUrl, RequestPacer, TappedOutClient } from "./tappedout.ts";
 
 async function readTextIfPresent(path: string): Promise<string | null> {
   try {
@@ -37,9 +37,10 @@ export interface BackupResult {
 }
 
 export async function runBackup(config: Config): Promise<BackupResult> {
+  const requestPacer = new RequestPacer(config.requestDelayMs);
   const urls = new Set(config.deckUrls.map(normalizeDeckUrl));
   if (config.folderUrl) {
-    const client = new TappedOutClient(config);
+    const client = new TappedOutClient(config, requestPacer);
     for (const url of await client.discoverDecks(config.folderUrl)) urls.add(url);
   }
   if (urls.size === 0) {
@@ -49,9 +50,9 @@ export async function runBackup(config: Config): Promise<BackupResult> {
   const processDeck = async (sourceUrl: string) => {
     const slug = deckSlug(sourceUrl);
     console.log(`[backup] Fetching ${slug}`);
-    // Each worker has its own request pacing state, so raising MAX_CONCURRENCY
-    // later genuinely permits parallel HTTP requests.
-    const client = new TappedOutClient(config);
+    // Workers can download responses in parallel, while the shared pacer limits
+    // request starts across the entire backup run.
+    const client = new TappedOutClient(config, requestPacer);
     const downloaded = await client.downloadDeck(sourceUrl);
     const directory = join(config.outputDir, "decks", slug);
     const rawPath = join(directory, "deck.csv");

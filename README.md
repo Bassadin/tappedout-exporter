@@ -58,7 +58,7 @@ docker compose run --rm -e MODE=once tappedout-exporter
 | `TZ`                 | `UTC`                           | IANA timezone used to evaluate the schedule                      |
 | `RUN_ON_START`       | `true`                          | Back up immediately when the container starts                    |
 | `TAPPEDOUT_COOKIE`   | empty                           | Complete Cookie header for private content                       |
-| `REQUEST_DELAY_MS`   | `1000`                          | Minimum pause between TappedOut requests                         |
+| `REQUEST_DELAY_MS`   | `1000`                          | Global minimum pause between TappedOut request starts (ms)       |
 | `REQUEST_TIMEOUT_MS` | `60000`                         | Per-request timeout                                              |
 | `MAX_RETRIES`        | `4`                             | Retries for throttling and server failures                       |
 | `MAX_CONCURRENCY`    | `1`                             | Maximum concurrent deck exports; increase cautiously             |
@@ -68,9 +68,11 @@ Only HTTPS URLs on `tappedout.net` are accepted, so an authentication cookie can
 sent to another host. Put secrets in `.env`; it is ignored by Git.
 
 Deck discovery is necessarily sequential because TappedOut's folder API returns the page and its
-pagination token in order. Deck CSV downloads are processed by a bounded worker pool. The default of
-`1` preserves the current low-impact request rate; raise `MAX_CONCURRENCY` only after TappedOut is
-stable again.
+pagination token in order. Deck downloads are processed by a bounded worker pool. The global
+`REQUEST_DELAY_MS` applies between every request start, independently of `MAX_CONCURRENCY`, so a
+pool can overlap slow responses without increasing the request rate. Start with `MAX_CONCURRENCY=1`;
+if TappedOut is slow but stable, try `2` or `3` while keeping a conservative request delay (for
+example, `REQUEST_DELAY_MS=2000`).
 
 ## Run with Deno
 
@@ -81,8 +83,8 @@ Copy-Item .env.example .env
 deno task --env-file=.env once
 ```
 
-Unlike Docker Compose, `deno task` does not load `.env` automatically. Always pass
-`--env-file=.env` when running locally, including the scheduled foreground process:
+Unlike Docker Compose, `deno task` does not load `.env` automatically. Always pass `--env-file=.env`
+when running locally, including the scheduled foreground process:
 
 ```sh
 deno task --env-file=.env start

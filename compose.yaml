@@ -10,6 +10,7 @@ services:
       TZ: "${TZ:-Europe/Berlin}"
       RUN_ON_START: "${RUN_ON_START:-true}"
       MAX_CONCURRENCY: "${MAX_CONCURRENCY:-1}"
+      REQUEST_DELAY_MS: "${REQUEST_DELAY_MS:-1000}"
       TAPPEDOUT_COOKIE: "${TAPPEDOUT_COOKIE:-}"
     volumes:
       - ./backups:/data

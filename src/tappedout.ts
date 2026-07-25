@@ -9,6 +9,29 @@ function sleep(milliseconds: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, milliseconds));
 }
 
+/**
+ * Serializes request starts across all workers while allowing their responses to
+ * download concurrently. This keeps request rate independent of deck concurrency.
+ */
+export class RequestPacer {
+  #nextRequestAt = 0;
+  #tail: Promise<void> = Promise.resolve();
+
+  constructor(private readonly minimumDelayMs: number) {}
+
+  async waitForTurn(): Promise<void> {
+    let release: () => void;
+    const previous = this.#tail;
+    this.#tail = new Promise<void>((resolve) => release = resolve);
+    await previous;
+
+    const scheduledAt = Math.max(Date.now(), this.#nextRequestAt);
+    this.#nextRequestAt = scheduledAt + this.minimumDelayMs;
+    release!();
+    await sleep(Math.max(0, scheduledAt - Date.now()));
+  }
+}
+
 export function assertTappedOutUrl(input: string): URL {
   const url = new URL(input);
   if (url.protocol !== "https:" || url.hostname !== TAPPEDOUT_HOST) {
@@ -142,18 +165,17 @@ function parseJson<T>(source: string, label: string): T {
 }
 
 export class TappedOutClient {
-  #lastRequestAt = 0;
-
-  constructor(private readonly config: Config) {}
+  constructor(
+    private readonly config: Config,
+    private readonly pacer = new RequestPacer(config.requestDelayMs),
+  ) {}
 
   async #fetch(url: string, accept: string): Promise<string> {
     const target = assertTappedOutUrl(url);
     let lastError: unknown;
 
     for (let attempt = 0; attempt <= this.config.maxRetries; attempt++) {
-      const waitFor = this.config.requestDelayMs - (Date.now() - this.#lastRequestAt);
-      if (waitFor > 0) await sleep(waitFor);
-      this.#lastRequestAt = Date.now();
+      await this.pacer.waitForTurn();
 
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), this.config.requestTimeoutMs);
