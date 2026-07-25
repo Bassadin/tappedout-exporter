@@ -38,7 +38,8 @@ backups/
 ```
 
 The container runs immediately at startup by default, then at `CRON_SCHEDULE`. The default is
-`0 3 * * *` (03:00 each day) in the timezone from `TZ`.
+`0 3 * * *` (03:00 each day) in the timezone from `TZ`. Scheduling uses
+[Croner](https://croner.56k.guru/), including timezone/DST handling and overrun protection.
 
 Run a one-off backup:
 
@@ -53,7 +54,7 @@ docker compose run --rm -e MODE=once tappedout-exporter
 | `FOLDER_URL`         | none in the app                 | TappedOut folder discovered through its structured folder API    |
 | `DECK_URLS`          | empty                           | Comma/newline-separated deck URLs to add or use without a folder |
 | `OUTPUT_DIR`         | `./backups` (`/data` in Docker) | Persistent destination                                           |
-| `CRON_SCHEDULE`      | `0 3 * * *`                     | Five-field cron expression                                       |
+| `CRON_SCHEDULE`      | `0 3 * * *`                     | Cron expression or Croner schedule nickname                      |
 | `TZ`                 | `UTC`                           | IANA timezone used to evaluate the schedule                      |
 | `RUN_ON_START`       | `true`                          | Back up immediately when the container starts                    |
 | `TAPPEDOUT_COOKIE`   | empty                           | Complete Cookie header for private content                       |
@@ -92,6 +93,11 @@ previously downloaded deck folders remain available even after removal from that
 deno task check
 deno task test
 ```
+
+Prefer pinned, actively maintained Deno standard-library or JSR packages for generic concerns such
+as parsing, scheduling, validation, and protocol handling. Keep custom code focused on
+TappedOut-specific behavior, and add a dependency only when its maintenance and security cost is
+lower than owning the equivalent implementation.
 
 This project is an independent backup client and is not affiliated with TappedOut.net or Wizards of
 the Coast.

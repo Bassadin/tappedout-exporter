@@ -1,6 +1,6 @@
+import { Cron } from "jsr:@hexagon/croner@10.0.1";
 import type { Config } from "./types.ts";
 import { assertTappedOutUrl, normalizeDeckUrl } from "./tappedout.ts";
-import { parseCron } from "./cron.ts";
 
 function booleanEnv(name: string, fallback: boolean): boolean {
   const value = Deno.env.get(name);
@@ -30,13 +30,13 @@ export function loadConfig(): Config {
     .map(normalizeDeckUrl);
 
   const cronSchedule = Deno.env.get("CRON_SCHEDULE")?.trim() || "0 3 * * *";
-  parseCron(cronSchedule);
 
   const timezone = Deno.env.get("TZ")?.trim() || "UTC";
   try {
-    new Intl.DateTimeFormat("en-US", { timeZone: timezone }).format();
-  } catch {
-    throw new Error(`Invalid TZ timezone: ${timezone}`);
+    const validationJob = new Cron(cronSchedule, { paused: true, timezone });
+    validationJob.stop();
+  } catch (error) {
+    throw new Error(`Invalid CRON_SCHEDULE or TZ: ${error}`, { cause: error });
   }
 
   return {
