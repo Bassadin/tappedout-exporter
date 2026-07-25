@@ -36,7 +36,14 @@ export interface DeckBackup {
   csvUrl: string;
   slug: string;
   backedUpAt: string;
+  metadata: DeckMetadata;
   cards: Card[];
+}
+
+export interface DeckMetadata {
+  /** Deck name and description published on its TappedOut page. */
+  title: string | null;
+  description: string | null;
 }
 
 export interface CatalogDeck {

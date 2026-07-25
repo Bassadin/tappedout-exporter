@@ -1,11 +1,24 @@
 import { assertEquals, assertThrows } from "jsr:@std/assert@1.0.14";
 import {
   deckSlug,
+  extractDeckMetadata,
   extractDeckUrls,
   extractFolderId,
   normalizeDeckUrl,
   parseDeckCsv,
 } from "../src/tappedout.ts";
+
+Deno.test("extractDeckMetadata reads the deck's Open Graph title and description", () => {
+  const html = `
+    <meta property="og:title" content="MTG Deck: Kumena - Tappidity Tap Tap">
+    <meta property="og:description" content="Draft for a Kumena Deck ">
+  `;
+
+  assertEquals(extractDeckMetadata(html), {
+    title: "Kumena - Tappidity Tap Tap",
+    description: "Draft for a Kumena Deck",
+  });
+});
 
 Deno.test("normalizeDeckUrl drops query strings and adds a trailing slash", () => {
   assertEquals(

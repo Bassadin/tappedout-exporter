@@ -1,6 +1,6 @@
 import { pooledMap } from "jsr:@std/async@1.5.0/pool";
 import { dirname, join } from "jsr:@std/path@1.1.2";
-import type { Catalog, Config, DeckBackup } from "./types.ts";
+import type { Catalog, Config, DeckBackup, DeckMetadata } from "./types.ts";
 import { deckSlug, normalizeDeckUrl, TappedOutClient } from "./tappedout.ts";
 
 async function readTextIfPresent(path: string): Promise<string | null> {
@@ -17,6 +17,17 @@ async function writeIfChanged(path: string, content: string): Promise<boolean> {
   await Deno.mkdir(dirname(path), { recursive: true });
   await Deno.writeTextFile(path, content);
   return true;
+}
+
+function metadataMatches(existingJson: string | null, metadata: DeckMetadata): boolean {
+  if (existingJson === null) return false;
+  try {
+    const existing = JSON.parse(existingJson) as Partial<DeckBackup>;
+    return existing.metadata?.title === metadata.title &&
+      existing.metadata.description === metadata.description;
+  } catch {
+    return false;
+  }
 }
 
 export interface BackupResult {
@@ -46,14 +57,16 @@ export async function runBackup(config: Config): Promise<BackupResult> {
     const rawPath = join(directory, "deck.csv");
     const jsonPath = join(directory, "deck.json");
     const rawChanged = await writeIfChanged(rawPath, downloaded.csv);
+    const existingJson = await readTextIfPresent(jsonPath);
 
-    if (rawChanged || await readTextIfPresent(jsonPath) === null) {
+    if (rawChanged || !metadataMatches(existingJson, downloaded.metadata)) {
       const document: DeckBackup = {
         schemaVersion: 1,
         sourceUrl,
         csvUrl: new URL("?fmt=csv", sourceUrl).toString(),
         slug,
         backedUpAt: new Date().toISOString(),
+        metadata: downloaded.metadata,
         cards: downloaded.cards,
       };
       await writeIfChanged(jsonPath, `${JSON.stringify(document, null, 2)}\n`);

@@ -87,7 +87,8 @@ For a scheduled foreground process, use `deno task start`.
 
 The source endpoint is `?fmt=csv`, with a cache-buster matching TappedOut's own download UI.
 `deck.csv` is the lossless source export. `deck.json` provides typed booleans and quantities while
-retaining every original field in `raw`.
+retaining every original field in `raw`, plus the deck page's `metadata.title` and
+`metadata.description` fields.
 
 Files are rewritten only when their remote content changes, which keeps NAS snapshots and Git
 histories quiet. `catalog.json` lists decks currently discovered in the configured folder;

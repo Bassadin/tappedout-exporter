@@ -1,4 +1,5 @@
-import { type Card, type Config, EXPECTED_COLUMNS } from "./types.ts";
+import { DOMParser } from "jsr:@b-fuze/deno-dom@0.1.56";
+import { type Card, type Config, type DeckMetadata, EXPECTED_COLUMNS } from "./types.ts";
 import { parseCsv, recordsFromCsv } from "./csv.ts";
 
 const TAPPEDOUT_HOST = "tappedout.net";
@@ -91,6 +92,20 @@ export function parseDeckCsv(csv: string): Card[] {
       raw,
     };
   });
+}
+
+export function extractDeckMetadata(html: string): DeckMetadata {
+  const document = new DOMParser().parseFromString(html, "text/html");
+  const contentOf = (selector: string): string | null => {
+    const value = document?.querySelector(selector)?.getAttribute("content")?.trim();
+    return value || null;
+  };
+
+  const title = contentOf('meta[property="og:title"]')?.replace(/^MTG Deck:\s*/i, "") ?? null;
+  return {
+    title,
+    description: contentOf('meta[property="og:description"]'),
+  };
 }
 
 export function extractFolderId(html: string): number {
@@ -254,12 +269,16 @@ export class TappedOutClient {
     return [...decks].sort();
   }
 
-  async downloadDeck(deckUrl: string): Promise<{ csv: string; cards: Card[]; csvUrl: string }> {
+  async downloadDeck(
+    deckUrl: string,
+  ): Promise<{ csv: string; cards: Card[]; csvUrl: string; metadata: DeckMetadata }> {
+    const pageUrl = normalizeDeckUrl(deckUrl);
     const exportUrl = csvUrl(deckUrl);
+    const metadata = extractDeckMetadata(await this.#fetch(pageUrl, "text/html"));
     const csv = (await this.#fetch(exportUrl, "text/csv,text/plain;q=0.9,*/*;q=0.1"))
       .replaceAll("\r\n", "\n");
     try {
-      return { csv, cards: parseDeckCsv(csv), csvUrl: exportUrl };
+      return { csv, cards: parseDeckCsv(csv), csvUrl: exportUrl, metadata };
     } catch (error) {
       throw new Error(`Invalid export for ${deckUrl}: ${error}`, { cause: error });
     }

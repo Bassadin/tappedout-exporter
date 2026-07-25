@@ -1,6 +1,7 @@
 {
   "version": "5",
   "specifiers": {
+    "jsr:@b-fuze/deno-dom@0.1.56": "0.1.56",
     "jsr:@hexagon/croner@10.0.1": "10.0.1",
     "jsr:@std/assert@1.0.14": "1.0.14",
     "jsr:@std/async@1.5.0": "1.5.0",
@@ -9,6 +10,9 @@
     "jsr:@std/path@1.1.2": "1.1.2"
   },
   "jsr": {
+    "@b-fuze/deno-dom@0.1.56": {
+      "integrity": "8030e2dc1d8750f1682b53462ab893d9c3470f2287feecbe22f44a88c54ab148"
+    },
     "@hexagon/croner@10.0.1": {
       "integrity": "95120f312b5e63afaaa4861838fe2d7b42f32554d2af96b7524b072abf63dabd"
     },
