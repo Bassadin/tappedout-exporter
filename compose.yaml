@@ -1,0 +1,14 @@
+services:
+  tappedout-exporter:
+    build: .
+    container_name: tappedout-exporter
+    restart: unless-stopped
+    environment:
+      FOLDER_URL: "${FOLDER_URL:-https://tappedout.net/mtg-deck-folders/09-02-18-edh/}"
+      DECK_URLS: "${DECK_URLS:-}"
+      CRON_SCHEDULE: "${CRON_SCHEDULE:-0 3 * * *}"
+      TZ: "${TZ:-Europe/Berlin}"
+      RUN_ON_START: "${RUN_ON_START:-true}"
+      TAPPEDOUT_COOKIE: "${TAPPEDOUT_COOKIE:-}"
+    volumes:
+      - ./backups:/data

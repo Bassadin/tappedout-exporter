@@ -1,0 +1,6 @@
+.git
+.env
+backups
+coverage
+README.md
+tests
