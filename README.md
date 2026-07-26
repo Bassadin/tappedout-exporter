@@ -47,6 +47,32 @@ Run a one-off backup:
 docker compose run --rm -e MODE=once tappedout-exporter
 ```
 
+## Run a published GHCR image
+
+After a release has been published, create `compose.ghcr.yaml` to run a fixed image version without
+building the repository locally:
+
+```yaml
+services:
+  tappedout-exporter:
+    image: ghcr.io/bassadin/tappedout-exporter:0.2.1
+    container_name: tappedout-exporter
+    restart: unless-stopped
+    env_file:
+      - .env
+    volumes:
+      - ./backups:/data
+```
+
+Create `.env` from `.env.example`, then start it with:
+
+```sh
+docker compose -f compose.ghcr.yaml up -d
+```
+
+Replace `0.2.1` with the exact released version you want to run. Fixed tags make updates deliberate
+and make it easy to roll back; use `:latest` only if you intentionally want every stable release.
+
 ## Configuration
 
 | Variable             | Default                         | Meaning                                                          |
