@@ -54,14 +54,14 @@ building the repository locally:
 
 ```yaml
 services:
-  tappedout-exporter:
-    image: ghcr.io/bassadin/tappedout-exporter:0.2.1
-    container_name: tappedout-exporter
-    restart: unless-stopped
-    env_file:
-      - .env
-    volumes:
-      - ./backups:/data
+    tappedout-exporter:
+        image: ghcr.io/bassadin/tappedout-exporter:0.2.1
+        container_name: tappedout-exporter
+        restart: unless-stopped
+        env_file:
+            - .env
+        volumes:
+            - ./backups:/data
 ```
 
 Create `.env` from `.env.example`, then start it with:
