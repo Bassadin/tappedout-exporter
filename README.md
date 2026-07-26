@@ -113,6 +113,44 @@ deno task coverage
 `deno task check` includes a fresh coverage run and terminal summary. The raw profiles and
 HTML/LCOV-ready coverage output are kept in `coverage/`, which is ignored by Git.
 
+## Releases and Docker image versions
+
+`deno.json` is the single source of truth for the application version. Releases use
+[Release Please](https://github.com/googleapis/release-please-action) and semantic versioning: patch
+releases fix behavior, minor releases add compatible features, and major releases may require
+configuration or workflow changes.
+
+Do not manually run `deno bump-version`, commit a version change, or create a release tag. Release
+Please examines Conventional Commits on `main`, opens and updates a release pull request containing
+the `deno.json` version bump and generated release notes, and creates the GitHub Release and
+`vMAJOR.MINOR.PATCH` tag when that pull request is merged.
+
+The same workflow then verifies the tag matches `deno.json`, reruns the checks, and publishes
+`ghcr.io/bassadin/tappedout-exporter` with these tags:
+
+- Stable `v1.2.3`: `1.2.3`, `1.2`, `1`, `latest`, and an immutable `sha-…` tag.
+- Prerelease `v1.2.3-rc.1`: `1.2.3-rc.1` and an immutable `sha-…` tag only.
+
+Use a full version such as `ghcr.io/bassadin/tappedout-exporter:1.2.3` in a deployed Compose file;
+reserve `latest` for intentionally following every stable release. The first GHCR package may need
+to be made public in its GitHub package settings before it can be pulled anonymously.
+
+### Conventional Commits
+
+Use [Conventional Commits](https://www.conventionalcommits.org/) for changes merged to `main`. This
+is the input Release Please uses to create release pull requests, update `deno.json`, generate
+release notes, create Git tags, and trigger the versioned GHCR image build.
+
+| Commit form                                    | Release effect        | Example                                  |
+| ---------------------------------------------- | --------------------- | ---------------------------------------- |
+| `fix:`                                         | Patch                 | `fix: retry rate-limited deck downloads` |
+| `feat:`                                        | Minor                 | `feat: export deck commander names`      |
+| `type!:` or a `BREAKING CHANGE:` footer        | Major                 | `feat!: change the backup JSON schema`   |
+| `docs:`, `test:`, `ci:`, `chore:`, `refactor:` | No release by default | `test: cover folder pagination`          |
+
+Use a short imperative description after the type. Add an optional scope when it makes the change
+clearer, such as `fix(backup): preserve metadata when CSV data is unchanged`.
+
 Prefer pinned, actively maintained Deno standard-library or JSR packages for generic concerns such
 as parsing, scheduling, validation, and protocol handling. Keep custom code focused on
 TappedOut-specific behavior, and add a dependency only when its maintenance and security cost is
