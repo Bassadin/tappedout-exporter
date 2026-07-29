@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.2](https://github.com/Bassadin/tappedout-exporter/compare/v0.2.1...v0.2.2) (2026-07-29)
+
+
+### Bug Fixes
+
+* **ci:** format Renovate configuration ([1eb5ec3](https://github.com/Bassadin/tappedout-exporter/commit/1eb5ec3fb82fd6eaad1f4863811234c62b0be93d))
+
 ## [0.2.1](https://github.com/Bassadin/tappedout-exporter/compare/v0.2.0...v0.2.1) (2026-07-26)
 
 
